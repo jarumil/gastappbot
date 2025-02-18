@@ -1,0 +1,9 @@
+PROMPT = 'Utilice los artículos proporcionados delimitados por comillas triples para responder preguntas de manera concisa y directa, sin explicaciones largas. Si no se puede encontrar la respuesta en los artículos, escriba "No pude encontrar una respuesta". """{data_str}""".'
+QUESTION = 'Pregunta: {question}.'
+SPREAD_ID = "1FOu4reoHwN-q1MhnNjamlm1YY0ZjLyqYWkFlOm1DhfU"
+SHEET_NAME = "Datos"
+DATA_FILENAME = "data.csv"
+DATA_FOLDER = "data"
+DATA_BKP_FOLDER = "databk"
+CREDENTIALS_FILE = "credentials.json"
+CREDENTIALS_FOLDER = "credentials"
