@@ -33,6 +33,8 @@ def clean_bk_folder(bkp_folder):
             os.remove(oldest_file)
 
 def save_new_data(df: pd.DataFrame, filename: str):
+    if not os.path.exists(cts.DATA_FOLDER):
+        os.makedirs(cts.DATA_FOLDER)
     df.to_csv(filename, date_format='%d/%m/%Y', index=False)
 
 def filter_data(df: pd.DataFrame, years: int = 2) -> pd.DataFrame:
