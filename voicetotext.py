@@ -1,90 +1,42 @@
-import locale
-import pandas as pd
-from transformers import Trainer, TrainingArguments, BertTokenizer, BertForQuestionAnswering
-from datasets import Dataset
+import whisper
+import os
+import ffmpeg
+import os
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+# Cargar el modelo Whisper Tiny una sola vez
+# os.environ["PATH"] += os.pathsep + "F:\\Users\\Jose\\Documents\\binaries"
+model = whisper.load_model("small", download_root="./models")
 
-# Cargar los datos desde el archivo CSV
-df = pd.read_csv('data.csv')
-
-data = df.drop(columns=["Total", "Dividido"])
-data["Fecha"] = pd.to_datetime(data["Fecha"], format='%d/%m/%Y')
-data["Parcial"] = data["Parcial"].str.replace(".", "").str.replace(",", ".").astype(float)
-
-# Agrupar por 'Fecha' y 'Concepto' para obtener los gastos mensuales por categoría
-df_grouped = data.groupby([data['Fecha'].dt.to_period('M'), 'Concepto']).agg({'Parcial': 'sum'}).reset_index()
-df_grouped["Parcial"] = df_grouped["Parcial"].round(2)
-
-# Cargar el tokenizer y modelo
-tokenizer = BertTokenizer.from_pretrained("mrm8488/distill-bert-base-spanish-wwm-cased-finetuned-spa-squad2-es")
-model = BertForQuestionAnswering.from_pretrained("mrm8488/distill-bert-base-spanish-wwm-cased-finetuned-spa-squad2-es")
-
-# Crear una lista de ejemplos de pregunta-respuesta
-questions = []
-contexts = []
-answers = []
-start_positions = []
-end_positions = []
-
-for _, row in df_grouped.iterrows():
-    question = f"¿Cuánto gasté en {row['Concepto']} en {row['Fecha'].strftime('%B')} de {row['Fecha'].year}?"
-    context = f"En {row['Fecha'].strftime('%B')} de {row['Fecha'].year}, los gastos fueron: {row['Concepto']} = {row['Parcial']}€."
-    answer = str(row["Parcial"])  # Respuesta directa numérica
+def convert_audio_to_wav(audio_path: str) -> str:
+    """Convierte un archivo de audio a WAV con 16kHz si no está en el formato correcto."""
+    wav_path = "./temp_audio.wav"
     
-    questions.append(question)
-    contexts.append(context)
-    answers.append(answer)
+    try:
+        # Reconvertir el audio a 16kHz WAV (necesario para Whisper en algunos casos)
+        ffmpeg.input(audio_path).output(wav_path, format="wav", ar="16k").run(overwrite_output=True, quiet=True)
+        return wav_path
+    except Exception as e:
+        print(f"Error converting audio: {e}")
+        return None
 
-    # Tokenizar el contexto y la pregunta
-    encodings = tokenizer(question, context, truncation=True, padding="max_length", max_length=512, return_tensors="pt")
+def transcribe(audio_path: str) -> str:
+    """Transcribe un audio a texto usando Whisper."""
+    # Convertir audio si es necesario
+    if not audio_path.endswith(".wav"):
+        audio_path = convert_audio_to_wav(audio_path)
 
-    # Buscar la respuesta en el contexto y obtener las posiciones de inicio y fin
-    start_pos = context.find(answer)
-    end_pos = start_pos + len(answer)
+    if not audio_path:
+        return "Error processing audio file."
 
-    # Convertir las posiciones de caracteres a posiciones de tokens
-    start_token = encodings.char_to_token(start_pos) if start_pos >= 0 else -1
-    end_token = encodings.char_to_token(end_pos) if end_pos >= 0 else -1
-    
-    # Agregar las posiciones al dataset
-    start_positions.append(start_token)
-    end_positions.append(end_token)
+    try:
+        # Transcribir usando Whisper
+        result = model.transcribe(audio_path)
+        transcription = result["text"]
+        
+        # Eliminar archivo temporal después de transcribir
+        os.remove(audio_path)
 
-# Convertir las preguntas y respuestas en un formato adecuado para Hugging Face Datasets
-train_data = {
-    'question': questions, 
-    'context': contexts, 
-    'answer': answers, 
-    'start_position': start_positions,
-    'end_position': end_positions
-}
-
-train_dataset = Dataset.from_dict(train_data)
-
-# Tokenizar las preguntas y respuestas
-def tokenize_function(examples):
-    return tokenizer(examples["question"], examples["context"], truncation=True, padding="max_length", max_length=512)
-
-tokenized_datasets = train_dataset.map(tokenize_function, batched=True)
-
-# Configurar los parámetros de entrenamiento
-training_args = TrainingArguments(
-    output_dir='./results',          # Directorio donde guardar el modelo
-    evaluation_strategy="epoch",     # Evaluar al final de cada época
-    learning_rate=2e-5,              # Tasa de aprendizaje
-    per_device_train_batch_size=8,   # Tamaño de lote
-    num_train_epochs=3,              # Número de épocas
-    weight_decay=0.01,               # Regularización L2
-)
-
-# Crear el objeto Trainer
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized_datasets,
-    data_collator=None,  # Esto es opcional, solo si necesitas un collator específico
-)
-
-# Entrenar el modelo
-trainer.train()
+        return transcription
+    except Exception as e:
+        print(f"Error transcribing audio: {e}")
+        return "Error during transcription."
