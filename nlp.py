@@ -1,44 +1,59 @@
 import requests
-import pandas as pd
-import datetime as dt
 import json
-import typer   
+import typer
+from prompt import Prompt
+import constants.constants as cts
+import os
 
-def generate_response(prompt, question, api_key):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    data = {
-        "max_tokens": 500,
-        "model": "deepseek/deepseek-r1:free",
-        "messages": [{"role": "system", "content": prompt}, {"role": "user", "content": question}],
-        "stream": True  # Activar streaming
-    }
-    
-    response = requests.post(url, json=data, headers=headers, stream=True)
-    
-    for line in response.iter_lines():
-        if line:
-            yield line.decode("utf-8")
+app = typer.Typer()
 
-response = generate_response(prompt, question, api_key)
+@app.command()
+def generate_response(question: str):
+    question = cts.QUESTION.format(question=question)
+    prompt = Prompt()
 
-for res in response:
-    if 'data:' in res:
-        res = res.replace('data:', '', 1)
-        try:
-            res = json.loads(res)
-        except json.JSONDecodeError:
-            pass
-    try:
-        print(res["choices"][0]["delta"]["content"], end="")
-    except KeyError:
-        pass
-    except AttributeError:
-        pass
-    except TypeError:
-        pass
+    with open(os.path.join(cts.CREDENTIALS_FOLDER, cts.API_CREDENTIALS_FILE), 'r') as file:
+        api_credentials = json.load(file)
+
+    api_key = api_credentials["openrouter_key"]
+
+    models = ["deepseek/deepseek-r1:free", "deepseek/deepseek-chat:free"]
+
+    for model in models:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        data = {
+            "max_tokens": 1000,
+            "model": model,
+            "messages": [{"role": "system", "content": prompt.prompt}, {"role": "user", "content": question}],
+            "stream": True  # Activar streaming
+        }
+        
+        response = requests.post(url, json=data, headers=headers, stream=True)
+        
+        for line in response.iter_lines():
+            if line:
+                # yield line.decode("utf-8")
+                res = line.decode("utf-8")
+                if 'data:' in res:
+                    res = res.replace('data:', '', 1)
+                    if 'error' in res:
+                        break
+                    else:
+                        try:
+                            res = json.loads(res)
+                            msg = res["choices"][0]["delta"]["content"]
+                            yield msg
+                        except:
+                            continue
+        else:
+            print(model)
+            return
+    yield res
+        
 
 if __name__ == "__main__":
-    prompt = f'Utilice los artículos proporcionados delimitados por comillas triples para responder preguntas de manera concisa y directa, sin explicaciones largas. Si no se puede encontrar la respuesta en los artículos, escriba "No pude encontrar una respuesta". """{data_str}""". '
-    question = 'Pregunta: ¿Como han ido progresando los gastos de tipo propios en 2024?'
-    typer.run(generate_response)
+    app()
+    # for rr in generate_response("¿Cuanto he gastado en luz en febrero de 2023?"):
+    #     print(rr, end="")
+

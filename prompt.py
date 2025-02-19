@@ -6,10 +6,16 @@ import os
 class Prompt:
     def __init__(self):
         self._data = None
-        self.prompt = None
+        self._prompt = None
+
+    @property
+    def prompt(self) -> str:
+        if self._prompt is None:
+            self.generate_prompt(cts.FILTER_YEARS)
+        return self._prompt
 
     def generate_prompt(self, years: int = 2) -> None:
-        self.prompt = cts.PROMPT.format(data_str=self._filter_data(years).to_string(index=False))
+        self._prompt = cts.PROMPT.format(data_str=self._filter_data(years).to_string(index=False))
 
     def _read_data(self) -> None:
         df = pd.read_csv(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME))
