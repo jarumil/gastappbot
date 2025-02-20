@@ -1,4 +1,3 @@
-
 # GastappBot: Telegram Bot for Expense Management
 
 This repository contains a Telegram bot called **GastappBot** that interacts with an expense management system. The bot allows users to ask questions about their expenses and receives progressive responses, mimicking a more conversational flow.
@@ -24,6 +23,8 @@ Make sure you have the following installed:
   - `pandas`
   - `typer`
   - `python-telegram-bot`
+  - `openai-whisper`
+  - `ffmpeg-python`
 
 ---
 
@@ -37,7 +38,7 @@ Make sure you have the following installed:
 
 2. Create a virtual environment and install dependencies:
    ```bash
-   `conda create --name [NAME] python=3.11
+   conda create --name [NAME] python=3.11
    conda activate [NAME]
    ```
 
@@ -56,12 +57,37 @@ Make sure you have the following installed:
    ```json
    {
      "openrouter_key": "your_api_key",
-     "telegram": "your_bot_key"
+     "telegram": "your_bot_key",
+     "spreadsheet_id": "your_spreadsheet_id"
    }
    ```
 
 2. **Spreadsheet credentials:**  
-   Create `credentials.json` file in the `credentials/` folder.
+   Create `credentials.json` file in the `credentials/` folder (see [info](https://developers.google.com/workspace/guides/create-credentials)).
+
+3. **Specify your personal configuration:**  
+   Update the `config.json` file in the root directory with your specific configuration details. The file should include the following fields:
+   - `sheet_data_name`: The name of the sheet in your spreadsheet where the data is stored.
+   - `data`: The path to the data class used for prompt generation.
+   - `voice`: The path to the voice-to-text processing class.
+   - `question`: The template for formatting questions.
+   - `prompt`: The template for generating the prompt used by the bot.
+
+   Example `config.json`:
+   ```json
+   {
+       "sheet_data_name": "Datos",
+       "data": "prompt.data.MyData",
+       "voice": "voice.voicetotext.WhisperVoiceToText",
+       "openrouter_models": [
+         {"name": "deepseek/deepseek-r1:free"},
+         {"name": "deepseek/deepseek-chat:free"}
+       ],
+       "question": "Pregunta: {question}.",
+       "prompt": "..."
+   }
+   ```
+   You can create new voice models, nlp models and data loaders in the corresponding folders and use them modifying the `config.json` file.
 
 ---
 
@@ -95,19 +121,31 @@ The repository contains the following folders and files:
 /gastappbot
   ├── /constants             # Folder for the constants
       └── constants.py
-  ├── /credentials           # Folder to store the credentials
-  ├── /data                  # Folder to store the data
-  ├── /databk                # Folder to store the old data as backup
-  ├── /logs                  # Folder to store the logs
-  ├── /results               # Folder to store the results
+  ├── /prompt                # Folder for prompt engineering
+      ├── data.py
+      └── prompt.py
+  ├── /nlp                   # Folder for nlp processing
+      ├── models.py
+      └── nlp.py
+  ├── /voice                 # Folder for voice processing
+      └── voicetotext.py
   ├── telegram_bot.py        # Main script for the Telegram bot
-  ├── nlp.py                 # Logic to generate responses using the API
-  ├── prompt.py              # Script to generate the prompt engineering
   ├── update_data.py         # Script to update the data
-  ├── voice_to_text.py       # Script to process the voice messages
+  ├── config.json            # Configuration file
   ├── requirements.txt       # Project dependencies
+  ├── LICENSE                # License
   └── README.md              # This documentation file
 ```
+
+---
+
+## 🧑‍🤝‍🧑 Contributing
+
+1. **Fork** the repository.
+2. Create a branch (`git checkout -b new-feature`).
+3. Make your changes and commit (`git commit -am 'Add new feature'`).
+4. Push your changes (`git push origin new-feature`).
+5. Open a **pull request**.
 
 ---
 

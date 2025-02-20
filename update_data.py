@@ -4,10 +4,7 @@ import constants.constants as cts
 import pandas as pd
 import os
 import shutil
-import datetime as dt
-
-scope = ['https://spreadsheets.google.com/feeds']
-credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(cts.CREDENTIALS_FOLDER, cts.CREDENTIALS_FILE), scope)
+import json
 
 def get_data(credentials, spreadsheet_key, sheet_name):
     client = gspread.authorize(credentials)
@@ -37,14 +34,17 @@ def save_new_data(df: pd.DataFrame, filename: str):
         os.makedirs(cts.DATA_FOLDER)
     df.to_csv(filename, date_format='%d/%m/%Y', index=False)
 
-def filter_data(df: pd.DataFrame, years: int = 2) -> pd.DataFrame:
-    today = dt.datetime.today()
-    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
-    return df[df['Fecha'].dt.year >= today.year - years]
-
 if __name__ == "__main__":
+    scope = ['https://spreadsheets.google.com/feeds']
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(cts.CREDENTIALS_FOLDER, cts.CREDENTIALS_FILE), scope)
+
+    with open(os.path.join(cts.CREDENTIALS_FOLDER, cts.API_CREDENTIALS_FILE)) as f:
+        api_credentials = json.load(f)
+
+    with open("config.json", "r") as f:
+        config = json.load(f)
+
     move_previous_data(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME), cts.DATA_BKP_FOLDER)
     clean_bk_folder(cts.DATA_BKP_FOLDER)
-    df = get_data(credentials, cts.SPREAD_ID, cts.SHEET_NAME)
-    df = filter_data(df, cts.FILTER_YEARS)
+    df = get_data(credentials, api_credentials["spreadsheet_id"], config["sheet_data_name"])
     save_new_data(df, os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME))

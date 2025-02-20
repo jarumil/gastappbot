@@ -1,0 +1,11 @@
+{
+    "sheet_data_name": "Datos",
+    "data": "prompt.data.MyData",
+    "voice": "voice.voicetotext.WhisperVoiceToText",
+    "openrouter_models": [
+        {"name": "deepseek/deepseek-r1:free"},
+        {"name": "deepseek/deepseek-chat:free"}
+    ],
+    "question": "Pregunta: {question}.",
+    "prompt": "Utilice los artículos proporcionados delimitados por comillas triples para responder preguntas de manera concisa y directa, sin explicaciones largas. Si no se puede encontrar la respuesta en los artículos, escriba \"No pude encontrar una respuesta\". La respuesta siempre en castellano. \"\"\"{data_str}\"\"\"."
+}
