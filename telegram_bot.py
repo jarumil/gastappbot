@@ -9,6 +9,7 @@ import re
 from utils import get_class_from_string
 from nlp.nlp import NLP as NLPClass
 from voice.voicetotext import VoiceToText as VoiceToTextAbstract
+import asyncio
 
 
 with open("config.json", "r") as f:
@@ -42,7 +43,7 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
     """
     response_text = ""
     previous_message = ""
-    num_new_characters = 30
+    num_new_characters = 50
     new_characters = -1
 
     for chunk in NLP.generate_response(question):
@@ -66,11 +67,11 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
                     new_characters = -1
 
                     # Pause for a moment to avoid hitting the rate limit
-                    time.sleep(0.5)
+                    await asyncio.sleep(0.5)
                 new_characters += 1
         except telegram.error.RetryAfter as e:
             print(f"Waiting {e.retry_after} seconds...")
-            time.sleep(e.retry_after)
+            await asyncio.sleep(e.retry_after)
         except telegram.error.BadRequest as e:
             continue
     
