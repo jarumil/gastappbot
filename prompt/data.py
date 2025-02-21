@@ -31,7 +31,7 @@ class MyData(Data):
         df.columns = ['Categoria', 'Descripcion', 'Precio', 'Tipo', 'Mes', 'Año']
         df["Precio"] = df["Precio"].str.replace('.', '').str.replace(',', '.').astype(float)
         df["Precio"] = df["Precio"].round(2)
-        df = df.fillna('')
+        df = df.fillna('desconocido')
         df = df.groupby(['Año', 'Mes', 'Categoria', 'Descripcion', 'Tipo'])['Precio'].sum().reset_index()
 
         return df

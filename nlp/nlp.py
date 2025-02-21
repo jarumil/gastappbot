@@ -21,9 +21,13 @@ class NLP:
         for model in self._models:
             response = model.request(self._prompt.prompt, question)
 
+            any_valid_response = False
+
             for msg in model.process_stream_request(response):
+                if msg:
+                    any_valid_response = True
                 yield msg
-            else:
+            if any_valid_response:
                 return
         msg = "No response from any model"
         print(msg)

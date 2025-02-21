@@ -47,7 +47,8 @@ class OpenRouterModel(Model):
                 if 'data:' in res:
                     res = res.replace('data:', '', 1)
                     if 'error' in res:
-                        break
+                        print(f"error: {res}")
+                        return
                     else:
                         try:
                             res = json.loads(res)
