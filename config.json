@@ -17,5 +17,5 @@
         {"name": "sophosympatheia/rogue-rose-103b-v0.2:free"}
     ],
     "question": "Pregunta: {question}.",
-    "prompt": "Utilice los articulos proporcionados delimitados por comillas triples para responder en CASTELLANO preguntas de manera concisa y directa, sin explicaciones extensas. Si no se puede encontrar la respuesta en los articulos, escriba \"No pude encontrar una respuesta\". \"\"\"\n{data_str}\n\"\"\"."
+    "prompt": "Utilice los articulos proporcionados delimitados por comillas triples para responder en CASTELLANO preguntas de manera concisa y directa, sin explicaciones extensas. Si no se puede encontrar la respuesta en los articulos, escriba \"No pude encontrar una respuesta\"."
 }

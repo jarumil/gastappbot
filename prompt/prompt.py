@@ -22,4 +22,10 @@ class Prompt:
         return self.generate_prompt()
 
     def generate_prompt(self) -> None:
-        return self._prompt.format(data_str=self._data.filtered_data().to_csv(index=False))
+        prompt = self._prompt
+
+        data = self._data.filtered_data()
+        for (year, month), sub_df in data.groupby(["Año", "Mes"]):
+            prompt += f'Aqui tienes los datos de {month} del {year}:\n"""{sub_df.drop(columns=["Año", "Mes"]).to_csv(index=False)}"""\n\n'
+
+        return prompt
