@@ -22,4 +22,4 @@ class Prompt:
         return self.generate_prompt()
 
     def generate_prompt(self) -> None:
-        return self._prompt.format(data_str=self._data.filtered_data().to_string(index=False))
+        return self._prompt.format(data_str=self._data.filtered_data().to_csv(index=False))

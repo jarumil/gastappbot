@@ -26,13 +26,16 @@ class MyData(Data):
         df = pd.read_csv(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME))
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
         df['Mes'] = df['Fecha'].dt.strftime('%B')
+        df["MesN"] = df['Fecha'].dt.month
         df['Año'] = df['Fecha'].dt.year
         df = df.drop(columns=['Fecha', 'Dividido', 'Total'])
-        df.columns = ['Categoria', 'Descripcion', 'Precio', 'Tipo', 'Mes', 'Año']
+        df.columns = ['Categoria', 'Descripcion', 'Precio', 'Tipo', 'Mes', 'MesN', 'Año']
         df["Precio"] = df["Precio"].str.replace('.', '').str.replace(',', '.').astype(float)
-        df["Precio"] = df["Precio"].round(2)
         df = df.fillna('desconocido')
-        df = df.groupby(['Año', 'Mes', 'Categoria', 'Descripcion', 'Tipo'])['Precio'].sum().reset_index()
+        df = df.groupby(['Año', 'Mes', 'MesN', 'Categoria', 'Descripcion', 'Tipo'])['Precio'].sum().reset_index()
+        df = df.sort_values(by=['Año', 'MesN', 'Categoria', 'Descripcion', 'Tipo', 'Precio'])
+        df = df.drop(columns=['MesN'])
+        df["Precio"] = df["Precio"].round(2)
 
         return df
 
