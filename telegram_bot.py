@@ -55,7 +55,7 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
             continue
         try:
             if message_is_ready(response_text, previous_message):
-                if (new_characters > num_new_characters) or ("error" in response_text):
+                if (new_characters > num_new_characters):
                     await bot.send_chat_action(chat_id, "typing")
                     await bot.edit_message_text(
                         chat_id=chat_id,
