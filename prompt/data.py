@@ -9,12 +9,48 @@ locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 
 class Data(ABC):
-    @abstractmethod
+    @property
     def data(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame
+            The complete dataset.
+        """
+        return self.get_data()
+    
+    @property
+    def filtered_data(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame
+            The filtered dataset based on specific criteria.
+        """
+        return self.get_filtered_data()
+    
+    @abstractmethod
+    def get_data(self) -> pd.DataFrame:
+        """
+        Abstract method to get the complete dataset.
+
+        Returns
+        -------
+        pd.DataFrame
+            The complete dataset.
+        """
         pass
 
     @abstractmethod
-    def filtered_data(self) -> pd.DataFrame:
+    def get_filtered_data(self) -> pd.DataFrame:
+        """
+        Abstract method to get the filtered dataset.
+
+        Returns
+        -------
+        pd.DataFrame
+            The filtered dataset.
+        """
         pass
 
 
@@ -22,7 +58,15 @@ class MyData(Data):
     def __init__(self):
         super().__init__()
 
-    def data(self) -> pd.DataFrame:
+    def get_data(self) -> pd.DataFrame:
+        """
+        Reads and processes the data from a CSV file.
+
+        Returns
+        -------
+        pd.DataFrame
+            The processed dataset.
+        """
         df = pd.read_csv(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME))
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
         df['Mes'] = df['Fecha'].dt.strftime('%B')
@@ -39,9 +83,17 @@ class MyData(Data):
 
         return df
 
-    def filtered_data(self) -> pd.DataFrame:
+    def get_filtered_data(self) -> pd.DataFrame:
+        """
+        Filters the data to include only the last two years.
+
+        Returns
+        -------
+        pd.DataFrame
+            The filtered dataset.
+        """
         today = dt.datetime.today()
         # Read the data every time because it might have changed.
-        data = self.data()
+        data = self.get_data()
 
         return data[data['Año'] >= today.year - 2]

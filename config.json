@@ -1,6 +1,6 @@
 {
     "sheet_data_name": "Datos",
-    "data": "prompt.data.MyData",
+    "prompt_model": "prompt.prompt.MyPrompt",
     "voice": "voice.voicetotext.WhisperVoiceToText",
     "openrouter_models": [
         {"name": "deepseek/deepseek-r1:free"},
