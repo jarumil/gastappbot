@@ -7,6 +7,23 @@ import shutil
 import json
 
 def get_data(credentials, spreadsheet_key, sheet_name):
+    """
+    Retrieve data from a Google Sheets spreadsheet.
+
+    Parameters
+    ----------
+    credentials : ServiceAccountCredentials
+        Google API credentials.
+    spreadsheet_key : str
+        The key of the spreadsheet.
+    sheet_name : str
+        The name of the sheet to retrieve data from.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame containing the spreadsheet data.
+    """
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_key(spreadsheet_key)
     worksheet = spreadsheet.worksheet(sheet_name)
@@ -15,6 +32,16 @@ def get_data(credentials, spreadsheet_key, sheet_name):
     return df
 
 def move_previous_data(filename, bkp_folder):
+    """
+    Move the previous data file to a backup folder.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file to move.
+    bkp_folder : str
+        The backup folder path.
+    """
     if not os.path.exists(bkp_folder):
         os.makedirs(bkp_folder)
     if os.path.exists(filename):
@@ -22,6 +49,14 @@ def move_previous_data(filename, bkp_folder):
         shutil.move(filename, os.path.join(bkp_folder, f"data_{today}.csv"))
 
 def clean_bk_folder(bkp_folder):
+    """
+    Clean the backup folder by removing the oldest file if there are more than 10 files.
+
+    Parameters
+    ----------
+    bkp_folder : str
+        The backup folder path.
+    """
     if os.path.exists(bkp_folder):
         files = [os.path.join(bkp_folder, f) for f in os.listdir(bkp_folder) if os.path.isfile(os.path.join(bkp_folder, f))]
         if len(files) > 10:
@@ -30,6 +65,16 @@ def clean_bk_folder(bkp_folder):
             os.remove(oldest_file)
 
 def save_new_data(df: pd.DataFrame, filename: str):
+    """
+    Save new data to a CSV file.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing the new data.
+    filename : str
+        The name of the file to save the data to.
+    """
     if not os.path.exists(cts.DATA_FOLDER):
         os.makedirs(cts.DATA_FOLDER)
     df.to_csv(filename, date_format='%d/%m/%Y', index=False)
