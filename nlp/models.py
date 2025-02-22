@@ -152,15 +152,15 @@ class OpenRouterModel(Model):
                 res = line.decode("utf-8")
                 if 'data:' in res:
                     res = res.replace('data:', '', 1)
-                    if 'error' in res:
-                        print(f"error: {res}")
+                    try:
+                        res = json.loads(res)
+                    except:
+                        continue
+                    if 'error' in res.keys():
+                        print(f"error: {res['error']['message']}")
                         return
                     else:
-                        try:
-                            res = json.loads(res)
-                            yield res["choices"][0]["delta"]["content"]
-                        except:
-                            continue
+                        yield res["choices"][0]["delta"]["content"]
         else:
             print(self._model)
             return
