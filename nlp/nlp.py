@@ -43,12 +43,16 @@ class NLP:
             response = model.request(self._prompt.prompt, question)
 
             any_valid_response = False
+            complete_msg = ""
 
             for msg in model.process_stream_request(response):
                 if msg:
                     any_valid_response = True
+                complete_msg += msg
                 yield msg
-            if any_valid_response:
+            # You have to change the second condition "No pude encontrar una respuesta"
+            # if tou change the prompt in config.json
+            if any_valid_response and "No pude encontrar una respuesta" not in complete_msg:
                 return
         msg = "No response from any model"
         print(msg)
