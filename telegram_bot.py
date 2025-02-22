@@ -26,12 +26,40 @@ TOKEN = api_credentials["telegram"]
 bot = telegram.Bot(token=TOKEN)
 
 def message_is_ready(message, previous_message):
+    """
+    Check if the message is ready to be processed.
+
+    Parameters
+    ----------
+    message : str
+        The current message.
+    previous_message : str
+        The previous message.
+
+    Returns
+    -------
+    bool
+        True if the message is ready to be processed, False otherwise.
+    """
     process_message = '[DONE]' not in message
     process_message = process_message and message != previous_message
     process_message = process_message and message != ''
     return process_message
 
 def escape_markdown_v2(text):
+    """
+    Escape special characters for MarkdownV2.
+
+    Parameters
+    ----------
+    text : str
+        The text to be escaped.
+
+    Returns
+    -------
+    str
+        The escaped text.
+    """
     escape_chars = r'_[]()~`>#+-=|{}.!'
     
     new_text = re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
@@ -39,7 +67,22 @@ def escape_markdown_v2(text):
 
 async def send_response_progressively(chat_id, sent_msg, question, parse_mode=None):
     """
-    This function sends the response progressively to the user.
+    Send the response progressively to the user.
+
+    Parameters
+    ----------
+    chat_id : int
+        The chat ID to send the response to.
+    sent_msg : telegram.Message
+        The message object of the sent message.
+    question : str
+        The question to generate a response for.
+    parse_mode : str, optional
+        The parse mode for the message (default is None).
+
+    Returns
+    -------
+    None
     """
     response_text = ""
     previous_message = ""
@@ -88,12 +131,40 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
         pass
 
 async def start(update: Update, context):
+    """
+    Handle the /start command.
+
+    Parameters
+    ----------
+    update : telegram.Update
+        The update object.
+    context : telegram.ext.CallbackContext
+        The callback context.
+
+    Returns
+    -------
+    None
+    """
     await update.message.reply_text(
         "¡Hola! Soy un bot que puede responder tus preguntas."
         "Puedes enviarme un mensaje de voz o texto y te responderé lo mejor que pueda."
     )
 
 async def handle_audio(update: Update, context):
+    """
+    Handle audio messages.
+
+    Parameters
+    ----------
+    update : telegram.Update
+        The update object.
+    context : telegram.ext.CallbackContext
+        The callback context.
+
+    Returns
+    -------
+    None
+    """
     chat_id = update.message.chat.id
     file_id = update.message.voice.file_id if update.message.voice else update.message.audio.file_id
     new_file = await context.bot.get_file(file_id)
@@ -113,6 +184,20 @@ async def handle_audio(update: Update, context):
     print("Ready!")
 
 async def handle_question(update: Update, context):
+    """
+    Handle text messages.
+
+    Parameters
+    ----------
+    update : telegram.Update
+        The update object.
+    context : telegram.ext.CallbackContext
+        The callback context.
+
+    Returns
+    -------
+    None
+    """
     question = update.message.text 
     chat_id = update.message.chat.id
     message_id = update.message.message_id
