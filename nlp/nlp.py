@@ -15,7 +15,7 @@ class NLP:
         with open("config.json", "r") as f:
             config = json.load(f)
 
-        self._prompt: Prompt = get_class_from_string(config["prompt"])()
+        self._prompt: Prompt = get_class_from_string(config["prompt_model"])()
         self._question: str = config["question"]
         openrouter_models: list = config["openrouter_models"]
 
