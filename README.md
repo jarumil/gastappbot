@@ -68,8 +68,9 @@ Make sure you have the following installed:
 3. **Specify your personal configuration:**  
    Update the `config.json` file in the root directory with your specific configuration details. The file should include the following fields:
    - `sheet_data_name`: The name of the sheet in your spreadsheet where the data is stored.
-   - `data`: The path to the data class used for prompt generation.
+   - `prompt_model`: The path to the prompt generation class.
    - `voice`: The path to the voice-to-text processing class.
+   - `openrouter_models`: A list of models to be used by the bot.
    - `question`: The template for formatting questions.
    - `prompt`: The template for generating the prompt used by the bot.
 
@@ -77,7 +78,7 @@ Make sure you have the following installed:
    ```json
    {
        "sheet_data_name": "Datos",
-       "data": "prompt.data.MyData",
+       "prompt_model": "prompt.prompt.MyPrompt",
        "voice": "voice.voicetotext.WhisperVoiceToText",
        "openrouter_models": [
          {"name": "deepseek/deepseek-r1:free"},
@@ -87,7 +88,7 @@ Make sure you have the following installed:
        "prompt": "..."
    }
    ```
-   You can create new voice models, nlp models and data loaders in the corresponding folders and use them modifying the `config.json` file.
+   You can create new voice models, NLP models, and prompts in the corresponding folders and use them by modifying the `config.json` file.
 
 ---
 
@@ -131,6 +132,7 @@ The repository contains the following folders and files:
       └── voicetotext.py
   ├── telegram_bot.py        # Main script for the Telegram bot
   ├── update_data.py         # Script to update the data
+  ├── utils.py               # Some utils functions
   ├── config.json            # Configuration file
   ├── requirements.txt       # Project dependencies
   ├── LICENSE                # License
