@@ -68,7 +68,7 @@ class MyPrompt(Prompt):
         """
         prompt = self._prompt
 
-        for (year, month), sub_df in self._data.filtered_data.groupby(["Año", "Mes"]):
+        for (year, month), sub_df in self._data.filtered_data.groupby(["Año", "Mes"], sort=False):
             prompt += f'Aqui tienes los datos de {month} del {year}:\n"""{sub_df.drop(columns=["Año", "Mes"]).to_csv(index=False)}"""\n\n'
 
         return prompt

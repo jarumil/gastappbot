@@ -77,9 +77,10 @@ class MyData(Data):
         df["Precio"] = df["Precio"].str.replace('.', '').str.replace(',', '.').astype(float)
         df = df.fillna('desconocido')
         df = df.groupby(['Año', 'Mes', 'MesN', 'Categoria', 'Descripcion', 'Tipo'])['Precio'].sum().reset_index()
+        df["Año"] = df["Año"].astype(int)
+        df["Precio"] = df["Precio"].round(2)
         df = df.sort_values(by=['Año', 'MesN', 'Categoria', 'Descripcion', 'Tipo', 'Precio'])
         df = df.drop(columns=['MesN'])
-        df["Precio"] = df["Precio"].round(2)
 
         return df
 
