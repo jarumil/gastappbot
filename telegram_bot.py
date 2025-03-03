@@ -2,14 +2,14 @@ import telegram
 import os
 import constants.constants as cts
 import json
-import time 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import re
-from utils import get_class_from_string
+from utils import get_class_from_string, download_page_in_pdf
 from nlp.nlp import NLP as NLPClass
 from voice.voicetotext import VoiceToText as VoiceToTextAbstract
 import asyncio
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 with open("config.json", "r") as f:
@@ -23,6 +23,12 @@ with open(os.path.join(cts.CREDENTIALS_FOLDER, cts.API_CREDENTIALS_FILE), 'r') a
 NLP = NLPClass()
 VOICE: VoiceToTextAbstract = VoiceToTextClass()
 TOKEN = api_credentials["telegram"]
+SHEET_ID = api_credentials["spreadsheet_id"]
+GID = api_credentials["spreadsheet_dashboard_guid"]
+GSCREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(
+    os.path.join(cts.CREDENTIALS_FOLDER, cts.CREDENTIALS_FILE),
+    ['https://spreadsheets.google.com/feeds'],
+)
 bot = telegram.Bot(token=TOKEN)
 
 def message_is_ready(message, previous_message):
@@ -210,10 +216,35 @@ async def handle_question(update: Update, context):
 
     print("Ready!")
 
+async def download_dashboard(update: Update, context):
+    """
+    Download a dashboard in PDF format.
+
+    Parameters
+    ----------
+    update : telegram.Update
+        The update object.
+    context : telegram.ext.CallbackContext
+        The callback context.
+    """
+    chat_id = update.message.chat.id
+    await bot.send_chat_action(chat_id, "upload_document")
+
+    filename = download_page_in_pdf(GSCREDENTIALS, SHEET_ID, GID)
+
+    if filename:
+        await bot.send_document(chat_id, open(filename, 'rb'))
+        os.remove(filename)
+        print("Ready!")
+    else:
+        await bot.send_message(chat_id, "No se pudo descargar el dashboard.")
+        print("Ready! (Failed)")
+
 if __name__ == '__main__':
     application = Application.builder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("dashboard", download_dashboard))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question))
     application.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, handle_audio))
 
