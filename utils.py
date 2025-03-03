@@ -2,7 +2,7 @@ from datetime import datetime
 import importlib
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
-import fitz
+from pdf2image import convert_from_path
 import os
 
 def get_class_from_string(class_path):
@@ -57,11 +57,9 @@ def download_page_in_pdf(credentials: ServiceAccountCredentials, spreadsheet_id:
         with open(full_name, "wb") as f:
             f.write(response.content)
 
-        pdf_document = fitz.open(full_name)
-        page = pdf_document.load_page(0)
-        pix = page.get_pixmap(dpi=400)
-        pix.save(name)
-        pdf_document.close()
+        images = convert_from_path(full_name, dpi=400)
+        images[0].save(name, 'PNG')
+
         os.remove(full_name)
 
         return name
