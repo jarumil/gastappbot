@@ -122,19 +122,26 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
             print(f"Waiting {e.retry_after} seconds...")
             await asyncio.sleep(e.retry_after)
         except telegram.error.BadRequest as e:
+            await asyncio.sleep(1)
             continue
     
     # Send the final message
-    await bot.send_chat_action(chat_id, "typing")
-    try:
-        await bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=sent_msg.message_id,
-            text=response_text,
-            parse_mode=parse_mode,
-        )
-    except telegram.error.BadRequest as e:
-        pass
+    while True:
+        try:
+            await bot.send_chat_action(chat_id, "typing")
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=sent_msg.message_id,
+                text=response_text,
+                parse_mode=parse_mode,
+            )
+            break
+        except telegram.error.RetryAfter as e:
+            print(f"Waiting {e.retry_after} seconds...")
+            await asyncio.sleep(e.retry_after)
+        except telegram.error.BadRequest as e:
+            print(f"Error: {e}")
+            break
 
 async def start(update: Update, context):
     """
