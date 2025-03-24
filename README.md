@@ -58,7 +58,9 @@ Make sure you have the following installed:
    {
      "openrouter_key": "your_api_key",
      "telegram": "your_bot_key",
-     "spreadsheet_id": "your_spreadsheet_id"
+     "spreadsheet_id": "your_spreadsheet_id",
+     "admin_users": ["USER_ID", ],
+     "allowed_users": ["USER_ID", ] 
    }
    ```
 

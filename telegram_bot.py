@@ -20,6 +20,24 @@ VoiceToTextClass = get_class_from_string(config["voice"])
 with open(os.path.join(cts.CREDENTIALS_FOLDER, cts.API_CREDENTIALS_FILE), 'r') as file:
         api_credentials = json.load(file)
 
+
+def check_permissions_admin(func):
+    def wrapper(update, context):
+        if update.effective_user.id in api_credentials["admin_users"]:
+            return func(update, context)
+        else:
+            return update.message.reply_text("No tienes permisos para realizar esta acción.")
+    return wrapper
+
+
+def check_permissions(func):
+    def wrapper(update, context):
+        if update.effective_user.id in api_credentials["allowed_users"] + api_credentials["admin_users"]:
+            return func(update, context)
+        else:
+            return update.message.reply_text("No tienes permisos para realizar esta acción.")
+    return wrapper
+
 NLP = NLPClass()
 VOICE: VoiceToTextAbstract = VoiceToTextClass()
 TOKEN = api_credentials["telegram"]
@@ -143,6 +161,7 @@ async def send_response_progressively(chat_id, sent_msg, question, parse_mode=No
             print(f"Error: {e}")
             break
 
+@check_permissions
 async def start(update: Update, context):
     """
     Handle the /start command.
@@ -163,6 +182,7 @@ async def start(update: Update, context):
         "Puedes enviarme un mensaje de voz o texto y te responderé lo mejor que pueda."
     )
 
+@check_permissions_admin
 async def handle_audio(update: Update, context):
     """
     Handle audio messages.
@@ -196,6 +216,7 @@ async def handle_audio(update: Update, context):
 
     print("Ready!")
 
+@check_permissions_admin
 async def handle_question(update: Update, context):
     """
     Handle text messages.
@@ -223,6 +244,7 @@ async def handle_question(update: Update, context):
 
     print("Ready!")
 
+@check_permissions_admin
 async def download_dashboard(update: Update, context):
     """
     Download a dashboard in PDF format.
