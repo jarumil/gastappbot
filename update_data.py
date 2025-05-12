@@ -1,5 +1,5 @@
-import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 import constants.constants as cts
 import pandas as pd
 import os
@@ -27,11 +27,11 @@ def get_data(credentials, spreadsheet_key, sheet_name):
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_key(spreadsheet_key)
     worksheet = spreadsheet.worksheet(sheet_name)
-    data = worksheet.get_all_values()
-    df = pd.DataFrame(data[1:], columns=data[0])
+    data = worksheet.get_all_records(value_render_option='UNFORMATTED_VALUE')
+    df = pd.DataFrame(data)
     return df
 
-def move_previous_data(filename, bkp_folder):
+def move_data(filename, bkp_folder):
     """
     Move the previous data file to a backup folder.
 
@@ -59,10 +59,11 @@ def clean_bk_folder(bkp_folder):
     """
     if os.path.exists(bkp_folder):
         files = [os.path.join(bkp_folder, f) for f in os.listdir(bkp_folder) if os.path.isfile(os.path.join(bkp_folder, f))]
-        if len(files) > 10:
+        files_to_remove = max(0, len(files) - 10)
+        if files_to_remove > 0:
             files.sort(key=lambda x: os.path.getmtime(x))
-            oldest_file = files[0]
-            os.remove(oldest_file)
+            for i in range(files_to_remove):
+                os.remove(files[i])
 
 def save_new_data(df: pd.DataFrame, filename: str):
     """
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     with open("config.json", "r") as f:
         config = json.load(f)
 
-    move_previous_data(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME), cts.DATA_BKP_FOLDER)
+    move_data(os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME), cts.DATA_BKP_FOLDER)
     clean_bk_folder(cts.DATA_BKP_FOLDER)
     df = get_data(credentials, api_credentials["spreadsheet_id"], config["sheet_data_name"])
     save_new_data(df, os.path.join(cts.DATA_FOLDER, cts.DATA_FILENAME))
